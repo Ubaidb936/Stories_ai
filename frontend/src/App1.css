@@ -1,0 +1,263 @@
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  background-color: #1e1e1e; /* Dark background for the entire page */
+  color: #f5f5f5; /* Light text for dark background */
+}
+
+.chatgpt-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100vh;
+  max-width: 100%;
+  background-color: #2c2c2c; /* Dark grey for the chat container */
+}
+
+.chat-window {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  background-color: #3a3a3a; /* Slightly lighter background for chat window */
+  border-bottom: 2px solid #4a4a4a;
+  position: relative; /* To position the progress bar correctly */
+}
+
+.message {
+  margin-bottom: 15px;
+  padding: 12px;
+  border-radius: 12px;
+  max-width: 80%;
+  line-height: 1.6;
+  font-size: 16px;
+  color: #ffffff; /* White text for readability */
+  position: relative; /* To allow positioning of children elements */
+  display: flex;
+  flex-direction: column;
+}
+
+.message.user {
+  align-self: flex-end; /* Align user's message to the right */
+  background-color: #5a5a5a; /* Muted dark gray for user messages */
+  color: #ffffff;
+  border: none;
+  margin-left: auto; /* Ensure it stays on the right */
+}
+
+.message.bot {
+  align-self: flex-start; /* Align bot's message to the left */
+  background-color: #444444; /* Dark gray for bot messages */
+  color: #eaeaea;
+  border: none;
+  margin-right: auto; /* Ensure it stays on the left */
+}
+
+.message img, .message audio {
+  background: none;
+  border: none;
+  box-shadow: none;
+  margin-top: 10px;
+}
+
+.uploaded-image {
+  max-width: 100%; /* Ensure the image does not exceed the width of the message box */
+  max-height: 1000px; /* Set a maximum height to avoid excessively large images */
+  border-radius: 8px;
+  object-fit: cover; /* Ensures the image covers the area without distortion */
+}
+
+.input-container {
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  background-color: #2c2c2c;
+  border-top: 2px solid #4a4a4a;
+}
+
+input[type="text"] {
+  flex: 1;
+  padding: 15px;
+  font-size: 16px;
+  background-color: #1e1e1e; /* Dark background for input */
+  color: #ffffff;
+  border: 2px solid #444444;
+  border-radius: 8px;
+  outline: none;
+}
+
+input[type="text"]:focus {
+  border-color: #ffffff;
+}
+
+button {
+  margin-left: 10px;
+  padding: 15px 25px;
+  background-color: #ffffff; /* Bright color for buttons */
+  color: #1e1e1e;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #e0e0e0;
+}
+
+.icon-button {
+  background: none;
+  border: none;
+  margin-right: 12px;
+  margin-left: 20px;
+  font-size: 24px; /* Large icons for easy access */
+  cursor: pointer;
+  color: #ffffff;
+  position: relative; /* Ensure the tooltip is positioned correctly */
+}
+
+.tooltip {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 70px; /* Increase width to accommodate longer text */
+  background-color: #555;
+  color: #fff;
+  text-align: center;
+  border-radius: 5px;
+  padding: 6px 8px; /* Adjust padding to fit the text properly */
+  font-size: 12px; /* Smaller font size */
+  position: absolute;
+  z-index: 1;
+  bottom: 125%; /* Position above the button */
+  left: 50%;
+  transform: translateX(-50%); /* Center the tooltip text */
+  opacity: 0;
+  transition: opacity 0.3s;
+  white-space: nowrap; /* Prevent text wrapping */
+}
+
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Progress Bar Container */
+.progress-bar-container {
+  width: 100%;
+  background-color: #e0e0e0;
+  border-radius: 5px;
+  overflow: hidden;
+  position: absolute; /* Position it at the bottom of the chat window */
+  bottom: 0; /* Align it with the bottom of the chat window */
+  left: 0;
+  z-index: 1000;
+}
+
+.progress-bar {
+  height: 6px;
+  background-color: #4caf50;
+  width: 0;
+  transition: width 0.4s ease-in-out;
+  border-radius: 5px;
+  position: relative;
+}
+
+.progress-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0.5) 0%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 50% 100%;
+  animation: progressAnimation 1.5s infinite linear;
+}
+
+@keyframes progressAnimation {
+  0% {
+    background-position: -100% 0;
+  }
+  100% {
+    background-position: 100% 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .message {
+    max-width: 100%;
+  }
+
+  input[type="text"] {
+    font-size: 15px;
+  }
+
+  button {
+    padding: 14px 20px;
+    font-size: 15px;
+  }
+
+  .icon-button {
+    font-size: 22px;
+  }
+}
+
+@media (max-width: 400px) {
+  .input-container {
+    flex-direction: column;
+  }
+
+  input[type="text"] {
+    font-size: 14px;
+  }
+
+  button {
+    padding: 12px 18px;
+    font-size: 14px;
+  }
+
+  .icon-button {
+    font-size: 20px;
+  }
+}
+
+.recording-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: #3b82f6; /* A brighter, warm yellow that contrasts well with the dark theme */
+  color: #1e1e1e; /* Dark text for contrast */
+  text-align: center;
+  padding: 10px;
+  font-size: 16px;
+  font-weight: bold;
+  border-bottom: 2px solid #d89c00; /* A slightly darker shade for the border */
+  z-index: 1000; /* Ensure it appears above other content */
+  animation: waveAnimation 1.5s ease-in-out infinite;
+}
+
+@keyframes waveAnimation {
+  0% {
+    transform: scaleY(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scaleY(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleY(1);
+    opacity: 0.9;
+  }
+}

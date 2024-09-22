@@ -1,3 +1,10 @@
 fastapi
 uvicorn
+multipart
+python-multipart 
+OpenAI
+langchain
+langchain_openai
+soundfile
+moviepy
 

@@ -1,141 +1,249 @@
+/* General styling for the entire page */
 html, body {
   height: 100%;
   margin: 0;
-  font-family: 'Helvetica Neue', Arial, sans-serif;
-  background-color: #1e1e1e; /* Dark background for the entire page */
-  color: #f5f5f5; /* Light text for dark background */
+  font-family: Arial, sans-serif;
+  background-color: #1e1e1e; /* Dark background */
+  color: #f5f5f5; /* Light text */
 }
 
-.chatgpt-container {
+/* Main container */
+.app-container {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  height: 100vh;
-  max-width: 100%;
-  background-color: #2c2c2c; /* Dark grey for the chat container */
+  align-items: center;
+  height: 100vh; /* Full viewport height */
+  padding: 10px; /* Adjusted padding for better spacing */
+  background-color: #2c2c2c;
+  box-sizing: border-box;
 }
 
-.chat-window {
-  flex: 1;
-  padding: 20px;
-  overflow-y: auto;
-  background-color: #3a3a3a; /* Slightly lighter background for chat window */
-  border-bottom: 2px solid #4a4a4a;
+/* Media container for image and audio */
+.media-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  width: 100%; /* Full width of the container */
 }
 
-.message {
-  margin-bottom: 15px;
-  padding: 12px;
-  border-radius: 12px;
-  max-width: 85%;
-  line-height: 1.6;
-  font-size: 16px;
-  color: #ffffff; /* White text for readability */
+/* Image area */
+.image-area {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #3a3a3a;
+  border: 2px solid #4a4a4a;
+  border-radius: 8px;
+  width: 100%; /* Full width of the container */
+  max-width: 600px; /* Optional max width */
+  height: 50vh; /* Height relative to the viewport height */
+  overflow: hidden; /* Ensure content doesn't overflow */
+  margin-bottom: 10px; /* Space between image and other elements */
+  position: relative; /* Position for absolute positioning of placeholder */
+  color: #f5f5f5; /* Placeholder text color */
 }
 
-.message.user {
-  align-self: flex-end;
-  background-color: #5a5a5a; /* Muted dark gray for user messages */
-  color: #ffffff;
-  border: none;
+/* Placeholder styling */
+.image-placeholder {
+  position: absolute;
+  text-align: center;
+  font-size: 18px;
+  color: #e0e0e0; /* Light gray text for better contrast */
+  pointer-events: none; /* Prevent interactions with the placeholder */
+  width: 100%; /* Full width of the container */
+  height: 100%; /* Full height of the container */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.7); /* Darker semi-transparent background */
+  border-radius: 8px; /* Match border-radius of the image area */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); /* Soft shadow for depth */
 }
 
-.message.bot {
-  align-self: flex-start;
-  background-color: #444444; /* Dark gray for bot messages */
-  color: #eaeaea;
-  border: none;
+/* Placeholder text styling */
+.image-placeholder p {
+  margin: 0; /* Remove default margin */
+  font-weight: 500; /* Medium weight for better readability */
+  font-style: normal; /* Normal style for a clean look */
+  font-family: 'Montserrat', sans-serif; /* Modern Montserrat font */
+  line-height: 1.4; /* Spacing between lines for readability */
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7); /* Text shadow for better contrast */
 }
 
-.message img, .message audio {
-  background: none;
-  border: none;
-  box-shadow: none;
-  margin-top: 10px;
-  max-width: 100%;
+/* Uploaded image */
+.uploaded-image {
+  width: 100%; /* Make image width 100% of container */
+  height: 100%; /* Make image height 100% of container */
+  object-fit: cover; /* Cover the container while preserving aspect ratio */
   border-radius: 8px;
 }
 
-.input-container {
+/* Audio area */
+.audio-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #3a3a3a;
+  border: 2px solid #4a4a4a;
+  border-radius: 8px;
+  width: 100%; /* Full width of the container */
+  max-width: 500px; /* Maximum width */
+  height: 10vh; /* Height relative to the viewport height */
+  padding: 5px; /* Reduced padding for better fit */
+  overflow: hidden; /* Ensure content doesn't overflow */
+  box-sizing: border-box; /* Include padding in width/height calculations */
+}
+
+/* Custom Audio Player Styling */
+.audio-player {
+  position: relative;
+  width: 100%; /* Full width of the container */
+  height: 100%; /* Full height of the container */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box; /* Include padding in width/height calculations */
+}
+
+/* Play/Pause button styling */
+.play-button {
+  background-color: #4a4a4a;
+  border: none;
+  border-radius: 50%;
+  padding: 4px; /* Adjusted padding for better fit */
+  cursor: pointer;
+  color: #f5f5f5;
+  font-size: 16px; /* Adjusted font size for better fit */
   display: flex;
   align-items: center;
-  padding: 20px;
-  background-color: #2c2c2c;
-  border-top: 2px solid #4a4a4a;
+  justify-content: center;
+  width: 40px; /* Fixed width */
+  height: 40px; /* Fixed height */
+  box-sizing: border-box; /* Include padding in width/height calculations */
 }
 
-input[type="text"] {
-  flex: 1;
-  padding: 15px;
-  font-size: 16px;
-  background-color: #1e1e1e; /* Dark background for input */
+.play-button:hover {
+  background-color: #666;
+}
+
+/* Progress bar styling */
+.audio-progress {
+  position: relative;
+  width: 80%; /* Adjusted width to fit within the audio area */
+  height: 6px; /* Adjusted height for better visibility */
+  background-color: #555; /* Slightly lighter background */
+  border-radius: 5px;
+  margin-top: 4px; /* Space between button and progress bar */
+  box-sizing: border-box; /* Include padding in width/height calculations */
+}
+
+.progress-bar {
+  height: 100%;
+  background-color: #f5f5f5; /* Light color for the progress bar */
+  border-radius: 5px;
+  width: 0%; /* Start with 0% width and update dynamically */
+}
+
+/* Audio time display */
+.audio-time {
+  color: #f5f5f5; /* Light text color */
+  font-size: 12px; /* Adjusted font size for better fit */
+  margin-top: 2px; /* Space between progress bar and time display */
+}
+
+/* Loading Animation Styling */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%; /* Full width of the container */
+  max-width: 600px; /* Optional max width */
+  margin: 10px 0; /* Space around loading text */
+}
+
+.loading-text {
+  font-size: 18px;
   color: #ffffff;
-  border: 2px solid #444444;
+  background-color: #3a3a3a;
+  padding: 10px;
   border-radius: 8px;
-  outline: none;
+  display: inline-block;
 }
 
-input[type="text"]:focus {
-  border-color: #ffffff;
+.dots {
+  display: inline-block;
+  position: relative;
 }
 
-button {
-  margin-left: 10px;
-  padding: 15px 25px;
-  background-color: #ffffff; /* Bright color for buttons */
-  color: #1e1e1e;
-  border: none;
-  border-radius: 8px;
-  font-size: 16px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
+.dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin: 0 3px;
+  background-color: #ffffff;
+  border-radius: 50%;
+  animation: dot-blink 1.4s infinite ease-in-out both;
 }
 
-
-.icon-button {
-  background: none;
-  border: none;
-  margin-right: 12px;
-  font-size: 24px; /* Large icons for easy access */
-  cursor: pointer;
-  color: #ffffff;
-  position: relative; /* Ensure the tooltip is positioned correctly */
+.dot:nth-child(1) {
+  animation-delay: -0.32s;
+}
+.dot:nth-child(2) {
+  animation-delay: -0.16s;
 }
 
-.icon-button {
-  background: none;
-  border: none;
-  margin-left: 20px;
-  margin-right: 12px;
-  font-size: 24px; /* Large icons for easy access */
-  cursor: pointer;
-  color: #ffffff;
-  position: relative; /* Ensure the tooltip is positioned correctly */
+@keyframes dot-blink {
+  0%, 20%, 80%, 100% {
+    opacity: 0;
+  }
+  40% {
+    opacity: 1;
+  }
+  60% {
+    opacity: 0.5;
+  }
+}
+
+/* Control container styling */
+.controls-container {
+  display: flex;
+  justify-content: space-between; /* Distribute space between icons */
+  align-items: center; /* Center icons vertically */
+  gap: 20px; /* Space between controls */
+  margin-top: 20px; /* Space from media container */
+  background-color: #3a3a3a; /* Match background color */
+  border: 2px solid #4a4a4a; /* Match border */
+  border-radius: 8px; /* Match border-radius */
+  padding: 10px; /* Add padding for better spacing */
+  width: 80%; /* Increase width of controls container */
+  max-width: 150px; /* Maximum width of controls container */
+  box-sizing: border-box; /* Include padding in width calculation */
 }
 
 .tooltip {
   position: relative;
   display: inline-block;
-  cursor: pointer;
 }
 
 .tooltip .tooltiptext {
   visibility: hidden;
-  width: 70px; /* Increase width to accommodate longer text */
-  background-color: #555;
+  background-color: #333;
   color: #fff;
   text-align: center;
-  border-radius: 5px;
-  padding: 6px 8px; /* Adjust padding to fit the text properly */
-  font-size: 12px; /* Smaller font size */
+  border-radius: 6px;
+  padding: 5px;
   position: absolute;
   z-index: 1;
   bottom: 125%; /* Position above the button */
   left: 50%;
-  transform: translateX(-50%); /* Center the tooltip text */
+  margin-left: -60px;
   opacity: 0;
   transition: opacity 0.3s;
-  white-space: nowrap; /* Prevent text wrapping */
+  white-space: nowrap; /* Prevent line breaks */
+  font-size: 12px; /* Smaller font size */
+  max-width: 120px; /* Restrict width to keep text on one line */
 }
 
 .tooltip:hover .tooltiptext {
@@ -143,82 +251,20 @@ button {
   opacity: 1;
 }
 
-.uploaded-image {
-  max-width: 100%;
-  max-height: 250px;
-  margin-top: 10px;
-  border-radius: 8px;
-}
-
-audio {
-  margin-top: 10px;
-}
-
-@media (max-width: 600px) {
-  .message {
-    max-width: 100%;
-  }
-
-  input[type="text"] {
-    font-size: 15px;
-  }
-
-  button {
-    padding: 14px 20px;
-    font-size: 15px;
-  }
-
-  .icon-button {
-    font-size: 22px;
-  }
-}
-
-@media (max-width: 400px) {
-  .input-container {
-    flex-direction: column;
-  }
-
-  input[type="text"] {
-    font-size: 14px;
-  }
-
-  button {
-    padding: 12px 18px;
-    font-size: 14px;
-  }
-
-  .icon-button {
-    font-size: 20px;
-  }
-}
-
-.recording-popup {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  background-color: #00def2e5; /* A brighter, warm yellow that contrasts well with the dark theme */
-  color: #1e1e1e; /* Dark text for contrast */
-  text-align: center;
+/* Icon button styling */
+.icon-button {
+  background-color: #4a4a4a;
+  border: none;
+  border-radius: 4px;
   padding: 10px;
-  font-size: 16px;
-  font-weight: bold;
-  border-bottom: 2px solid #d89c00; /* A slightly darker shade for the border */
-  z-index: 1000; /* Ensure it appears above other content */
-  animation: waveAnimation 1.5s ease-in-out infinite;
+  cursor: pointer;
+  color: #f5f5f5;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-@keyframes waveAnimation {
-  0% {
-    transform: scaleY(1);
-    opacity: 0.9;
-  }
-  50% {
-    transform: scaleY(1.1);
-    opacity: 1;
-  }
-  100% {
-    transform: scaleY(1);
-    opacity: 0.9;
-  }
+.icon-button:hover {
+  background-color: #666;
 }
