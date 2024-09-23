@@ -92,7 +92,7 @@ function App() {
         formData.append('file', fileToUpload);
   
         const xhr = new XMLHttpRequest();
-        xhr.open('POST', 'http://127.0.0.1:8000/upload-photo/', true);
+        xhr.open('POST', '/upload-photo/', true);
   
         xhr.onload = async () => {
           if (xhr.status >= 200 && xhr.status < 300) {
@@ -195,7 +195,7 @@ function App() {
           formData.append('image_name', uploadedImageName);
           formData.append('file', audioBlob, 'audio.webm');
           try {
-            const response = await fetch('http://127.0.0.1:8000/upload-audio/', {
+            const response = await fetch('/upload-audio/', {
               method: 'POST',
               body: formData,
             });
