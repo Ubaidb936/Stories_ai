@@ -57,7 +57,7 @@ async def upload_photo(file: UploadFile = File(...)):
         
         # Ensure speech_file_path_mp3 is properly formatted
         # Adjust the URL path based on your file serving directory
-        audio_url = f"http://127.0.0.1:8000/data/{file_manager.image_name}/output-speech.mp3"
+        audio_url = f"data/{file_manager.image_name}/output-speech.mp3"
  
         return {"question": question, "audio_url": audio_url}
 
@@ -85,7 +85,7 @@ async def upload_photo(file: UploadFile = File(...)):
         # Generate speech and save the audio file
         speech_file_path_mp3 = speech.transform_text_to_speech(result)
 
-        audio_url = f"http://127.0.0.1:8000/data/{file_manager.image_name}/output-speech.mp3"
+        audio_url = f"data/{file_manager.image_name}/output-speech.mp3"
 
         return {"question": result, "audio_url": audio_url}
         
@@ -132,7 +132,7 @@ async def upload_audio(image_name: str = Form(...), file: UploadFile = File(...)
     speech_file_path_mp3 = speech.transform_text_to_speech(question)
     
     
-    audio_url = f"http://127.0.0.1:8000/data/{file_manager.image_name}/output-speech.mp3"
+    audio_url = f"data/{file_manager.image_name}/output-speech.mp3"
     
     return {"question": question, "audio_url": audio_url}
 
