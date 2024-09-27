@@ -99,19 +99,39 @@ async def upload_photo(file: UploadFile = File(...)):
 @app.post("/upload-audio/")
 async def upload_audio(image_name: str = Form(...), file: UploadFile = File(...)):
     
-    file_manager = FileManager(image_name)
-
-    file_name = Path(file.filename).stem  # Extract file name without extension
-
-    file_location = f"data/{file_manager.image_name}/input-{file.filename}"
-    # Save the uploaded file
-    with open(file_location, "wb") as f:
-        shutil.copyfileobj(file.file, f)
-    audio_file_path = Path.cwd() / f"{file_location}" 
-    speech = Speech(file_manager.image_name)
-    text = speech.transform_speech_to_text(audio_file_path)
     
 
+    # file_name = Path(file.filename).stem  # Extract file name without extension
+
+    # file_location = f"data/{file_manager.image_name}/input-{file.filename}"
+    # Save the audio file
+    # with open(file_location, "wb") as f:
+    #     shutil.copyfileobj(file.file, f)
+
+
+    # audio_file_path = Path.cwd() / f"{file_location}" 
+    
+    file_manager = FileManager(image_name)
+
+    audio_file_path = file_manager.save_audio(file)
+
+    speech = Speech(file_manager.image_name)
+
+    text = speech.transform_speech_to_text(audio_file_path)
+
+    
+    audio_url = f"data/{file_manager.image_name}/output-speech.mp3"
+
+
+    prompt_generator = PromptGenerator()
+
+    intent = prompt_generator.get_intent(text)
+
+    if intent["intent"] == "change photo":
+        output = prompt_generator.change_photo_message(text)
+        message = output["message"]
+        speech.transform_text_to_speech(message)
+        return {"question": "photo", "audio_url": audio_url}
     
 
     tracker = Tracker(file_manager.count_file_path, file_manager.duration_file_path)
@@ -123,7 +143,7 @@ async def upload_audio(image_name: str = Form(...), file: UploadFile = File(...)
     conversation_manager.append_conversation("User", text)
     previous_memory = conversation_manager.retrieve_memory()
 
-    prompt_generator = PromptGenerator()
+    
     output = prompt_generator.get_prompt(file_manager.new_image_path, iter_count, previous_memory)  # No previous content
     question = output["question"]
     
@@ -132,7 +152,7 @@ async def upload_audio(image_name: str = Form(...), file: UploadFile = File(...)
     speech_file_path_mp3 = speech.transform_text_to_speech(question)
     
     
-    audio_url = f"data/{file_manager.image_name}/output-speech.mp3"
+    
     
     return {"question": question, "audio_url": audio_url}
 

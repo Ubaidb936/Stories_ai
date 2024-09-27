@@ -23,6 +23,13 @@ class FileManager:
                 file_object.write(file.file.read())
             return True
         return False
+
+    def save_audio(self, file):
+        input_audio_location = f"data/{self.image_name}/input-{file.filename}"
+        with open(input_audio_location, "wb") as f:
+            shutil.copyfileobj(file.file, f)
+        return input_audio_location   
+
     
     def copy_image(self, image_path: str):
         if not os.path.exists(self.new_image_path):

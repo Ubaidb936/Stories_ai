@@ -29,8 +29,10 @@ class UserIntent(BaseModel):
     intent: str = Field(description= "Intent of the user")
 
 class GenerateStory(BaseModel):
-     story: str = Field(description= "Generate a story from a converation around a photo graph")
+     story: str = Field(description= "Generate a summary from a converation around a photo graph")
 
+class ChangePhoto(BaseModel):
+    message: str = Field(description= "A message to the user")
 
 
 CONVERSATION_STARTER_PROMPT = """
@@ -108,15 +110,29 @@ user_intent_prompt = """
 """
 
 generate_story_prompt = """
-  Here is a conversation b/w a good friend and a user around a photo graph uploaded by a user. 
-  {conversation}
-  Please convert this conversation into a story in 3 lines
-  Provide:
-  1. A Story in 3 lines.
+Here is a conversation between a good friend and a user around a photograph uploaded by the user:
+{conversation}
+
+Please summarize this conversation into a 3-line story for the user. Please refer the user by you.
+
+This should be summarized for the user:
+1. A summary in 3 lines.
 """
 
+change_photo_prompt = """
+A conversation is taking place between a user and a good friend around a photograph. Now, the user wants to move on to a new photograph.
+Here is the user's message: {message}
 
+Provide the following:
 
+1- Kindly acknowledge the user's message and, in one sentence, suggest they click the "Load New Photo" button to share a new story.
+
+Note:
+
+1- The user is an older person, so be gentle and polite.
+2- Adjust your response to match the tone of the user's message.
+3- The goal is to guide the user to seamlessly transition into sharing a new story by encouraging them to click the "Load New Photo" button.
+"""
 
 
 
@@ -160,7 +176,7 @@ def image_model(inputs: dict) -> str | list[str] | dict:
 
 
 @chain
-def input_model(inputs: dict) -> str | list[str] | dict:
+def text_model(inputs: dict) -> str | list[str] | dict:
     """Invoke model with image and prompt."""
     model = ChatOpenAI(
         temperature=0.5, 
@@ -178,23 +194,23 @@ def input_model(inputs: dict) -> str | list[str] | dict:
     return msg.content    
 
 
-@chain
-def story_model(inputs: dict) -> str | list[str] | dict:
-    """Invoke model with image and prompt."""
-    model = ChatOpenAI(
-        temperature=0.5, 
-        model="gpt-4o", 
-        max_tokens=1024,
-        api_key= "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"
-        )
-    msg = model.invoke(
-                [HumanMessage(
-                content=[
-                {"type": "text", "text": inputs["prompt"]},
-                {"type": "text", "text": inputs["parser"].get_format_instructions()},
-                ])]
-                )
-    return msg.content    
+# @chain
+# def story_model(inputs: dict) -> str | list[str] | dict:
+#     """Invoke model with image and prompt."""
+#     model = ChatOpenAI(
+#         temperature=0.5, 
+#         model="gpt-4o", 
+#         max_tokens=1024,
+#         api_key= "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"
+#         )
+#     msg = model.invoke(
+#                 [HumanMessage(
+#                 content=[
+#                 {"type": "text", "text": inputs["prompt"]},
+#                 {"type": "text", "text": inputs["parser"].get_format_instructions()},
+#                 ])]
+#                 )
+#     return msg.content    
 
 
 class PromptGenerator:
@@ -203,6 +219,7 @@ class PromptGenerator:
         self.starting_question_parser = JsonOutputParser(pydantic_object=StartingQuestion)
         self.intent_parser = JsonOutputParser(pydantic_object=UserIntent)
         self.story_parser = JsonOutputParser(pydantic_object=GenerateStory)
+        self.change_photo_parser = JsonOutputParser(pydantic_object=ChangePhoto)
         self.ai_character = "Good Friend"
 
     def get_prompt(self, image_path: str, iter: int, memory: str) -> dict:
@@ -225,11 +242,17 @@ class PromptGenerator:
     def get_intent(self, user_input) -> dict:
         parser = self.intent_parser
         prompt = user_intent_prompt.format(input=user_input)
-        intent_chain = input_model | parser
+        intent_chain = text_model | parser
         return intent_chain.invoke({'prompt': prompt, 'parser':parser})    
 
     def get_story(self, conversation) -> dict:
         parser = self.story_parser
         prompt = generate_story_prompt.format(conversation=conversation)
-        story_chain = story_model | parser
-        return story_chain.invoke({'prompt': prompt, 'parser':parser})      
+        story_chain = text_model | parser
+        return story_chain.invoke({'prompt': prompt, 'parser':parser})
+
+    def change_photo_message(self, user_message)-> dict:
+        parser = self.change_photo_parser
+        prompt = change_photo_prompt.format(message = user_message)
+        photo_chain = text_model | parser
+        return photo_chain.invoke({'prompt':prompt, 'parser': parser})          

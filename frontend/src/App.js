@@ -201,6 +201,14 @@ function App() {
             });
             if (response.ok) {
               const data = await response.json();
+              
+              if(data.question == "photo"){
+
+                setImage(null);
+                setUploadedImageName('');
+                
+              }
+
               setAudio(data.audio_url);
               setUploading(false); // Stop loading animation
             } else {
@@ -287,12 +295,12 @@ function App() {
           </div>
         </div>
       )}
-
+      
       <div className="controls-container">
         <div className="tooltip">
           <label htmlFor="file-upload" className="icon-button">
             <i className="fas fa-paperclip"></i>
-            <span className="tooltiptext">Select a Photo</span>
+            <span className="tooltiptext">Load New Photo</span>
           </label>
           <input
             type="file"
@@ -305,12 +313,12 @@ function App() {
           {!recording ? (
             <button className="icon-button" onClick={startRecording}>
               <i className="fas fa-microphone"></i>
-              <span className="tooltiptext">Record Audio</span>
+              <span className="tooltiptext">I want to talk</span>
             </button>
           ) : (
             <button className="icon-button" onClick={stopRecording}>
               <i className="fas fa-stop"></i>
-              <span className="tooltiptext">Stop Recording</span>
+              <span className="tooltiptext">I want to stop</span>
             </button>
           )}
         </div>

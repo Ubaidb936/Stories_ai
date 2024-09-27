@@ -19,6 +19,8 @@ RUN npm run build
 # Stage 2: Set up the FastAPI app
 FROM python:3.11.4-slim AS fastapi-app
 
+RUN apt-get update && apt-get install -y ffmpeg
+
 # Set working directory for FastAPI app
 WORKDIR /app
 
@@ -39,7 +41,7 @@ COPY services ./services
 COPY data ./data
 
 # Expose the port for FastAPI
-EXPOSE 8000
+EXPOSE 443
 
-# Command to run FastAPI app
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Command to run FastAPI app with SSL
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "443", "--ssl-keyfile", "/etc/ssl/private/privkey.pem", "--ssl-certfile", "/etc/ssl/certs/fullchain.pem"]

@@ -1,0 +1,5 @@
+Good Friend: Who are the three people in this photo, and where was it taken?
+User: taken
+Good Friend: Can you tell me more about the relationship between the three people in the photo?
+User: I have no idea why the photo was taken.
+Good Friend: Do you know who the three people in the photo are and how they might be related to each other?
