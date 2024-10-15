@@ -3,15 +3,27 @@ import os
 from datetime import datetime
 
 class Tracker:
-    def __init__(self, count_file_path: str, duration_file_path: str):
-        self.count_file_path = count_file_path
-        self.duration_file_path = duration_file_path
+    def __init__(self, conversation_data_file_path:str):
+        self.conversation_data_file_path = conversation_data_file_path
 
-    def load_counts(self):
-        if os.path.exists(self.count_file_path):
-            with open(self.count_file_path, 'r') as f:
+    def load_data(self):
+        if os.path.exists(self.conversation_data_file_path):
+            with open(self.conversation_data_file_path, 'r') as f:
                 return json.load(f)
-        return {"count": 0}
+
+        return {
+                "start_time": datetime.now().isoformat(),
+                "end_time": None,  # End time will be set when the conversation ends
+                "duration": 0,
+                "count": 0,
+                "story_generated": False,
+                "tokens_used": 0,
+                "chat": "",
+                }   
+
+    def save_data(self, data):
+        with open(self.conversation_data_file_path, 'w') as f:
+            json.dump(data, f)                         
 
     def save_counts(self, counts):
         with open(self.count_file_path, 'w') as f:

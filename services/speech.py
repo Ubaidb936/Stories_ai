@@ -10,7 +10,7 @@ from pathlib import Path
 
 
 # os.environ["OPENAI_API_KEY"] 
-client = OpenAI(api_key="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")
+client = OpenAI(api_key="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")
 
 
 class Speech:
@@ -56,9 +56,10 @@ class Speech:
             print(f"Error processing the audio file: {e}")
             return None
 
-    def transform_text_to_speech(self, text: str):
+    def transform_text_to_speech(self, text: str, type: str):
         # Define file paths for saving audio
-        speech_file_path_mp3 = Path.cwd() / f"data/{self.image_name}/output-speech.mp3"
+
+        speech_file_path_mp3 = Path.cwd() / f"data/{self.image_name}/{type}.mp3"
  
         # Generate speech from text (using your TTS service)
         response = client.audio.speech.create(
