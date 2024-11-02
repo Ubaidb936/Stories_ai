@@ -21,7 +21,7 @@ class FileManager:
                 file_object.write(file.file.read())
             return True
         return False
-
+        
     def save_audio(self, file):
         input_audio_location = f"data/{self.image_name}/input-{file.filename}"
         with open(input_audio_location, "wb") as f:

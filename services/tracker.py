@@ -18,6 +18,9 @@ class Tracker:
                 "count": 0,
                 "story_generated": False,
                 "tokens_used": 0,
+                "doc_id": "",
+                "story_name": "",
+                "story_file_path": "",
                 "chat": "",
                 }   
 

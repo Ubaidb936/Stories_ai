@@ -80,38 +80,47 @@ CONVERSATION_ENDING_PROMPT = """
     """
 
 user_intent_prompt = """
-    The system and user are engaged in a conversation about a photo uploaded by the user.
-    The system asks questions related to the photograph, and the user responds.
-    Your task is to analyze the user's input to accurately determine their intent.
-    The possible intents are:
-    1. "change photo" - The user explicitly or implicitly indicates they want to move on to the next photo, do not wish to discuss the current photo, or directly state a desire to stop talking about the current photograph.
-    2. "change topic" - The user expresses a desire to talk about something else within the context of the current photograph or shows disinterest in the current line of questioning but doesn't want to change the photograph itself.
-    3. "continue" - The user is comfortable with the current conversation and wants to continue discussing the current photo.
-    Here is the user's input:
+    You are an expert in identifying user intent.
+    The system and user are engaged in a conversation about a photo uploaded by the user. The system asks questions related to the photo, and the user responds.
+    Your task is to analyze the user's response to determine their intent accurately.
+
+    Possible user intents include:
+    1. "change photo" - The user indicates they want to move on to another photo, stop discussing the current one, or explicitly requests to end the conversation about this photograph.
+    2. "continue" - The user is interested in continuing the current discussion and is engaged with the conversation about this photo.
+    3. "fetch story" - The user asks to load a memory, story, etc or they want to talk about a particular memory, story, etc.
+    4. "change topic" - The user indicates dissatisfaction with the current line of questioning and wishes to discuss a different aspect or topic.
+
+    User input:
     {input}
+
     Provide:
-    1. The intent of the user.
+    - The identified intent of the user.
     """
 
 generate_summary_prompt = """
     Here is a conversation between a good friend and a user around a photograph uploaded by the user:
     {conversation}
 
-    Please summarize this conversation into a 3-line story for the user. Please refer the user by you.
+    Summarize this conversation in a friendly, 3-line story using "you" to refer to the user. Then, ask a follow-up question to encourage them to continue sharing.
 
     This should be summarized for the user:
-    1. A summary in 3 lines.
+    1. A summary in 3 lines and a follow back question.
     """
 
 generate_story_prompt = """
+    Given the photograph upload by the user
     Here is a conversation between a good friend and a user around a photograph uploaded by the user:
     {conversation}
 
-    Please generate a short story from this conversation. Make it interesting!
+    Please generate a short story from this conversation about the photograph and a story name.
+    Please build a realistic story, don't invent anything and use photo as a guide.  
 
     Provide:
     1. A short Story in 3 lines.
+    2. Story name in 2 words.
     """
+
+
 generate_story_name_prompt = """
     Here is a story:
     {story}
@@ -148,13 +157,14 @@ class StartingQuestion(BaseModel):
     question: str = Field(description= "A question to start converstion around the photograph")
 
 class UserIntent(BaseModel):
-    intent: str = Field(description= "Intent of the user")
+    intent: str = Field(description= "Given a user input determine the intent of the user")
 
 class GenerateSummary(BaseModel):
-    summary: str = Field(description= " A Summary ")
+    summary: str = Field(description= " Summary and a follow back question")
 
 class GenerateStory(BaseModel):
     story: str = Field(description= "A Story")
+    story_name: str = Field(description= "A Story name")
 
 class GenerateStoryName(BaseModel):
     story_name: str = Field(description = "A Story name")    
@@ -263,11 +273,11 @@ class PromptGenerator:
         story_chain = text_model | parser
         return story_chain.invoke({'prompt': prompt, 'parser':parser})
 
-    def get_story(self, conversation) -> dict:
+    def get_story(self, image_path, conversation) -> dict:
         parser = self.story_parser
         prompt = generate_story_prompt.format(conversation=conversation)
-        story_chain = text_model | parser
-        return story_chain.invoke({'prompt': prompt, 'parser':parser})    
+        vision_chain = load_image_chain | image_model | parser
+        return vision_chain.invoke({'image_path': f'{image_path}', 'prompt': prompt, 'parser':parser})   
 
     def change_photo_message(self, user_message)-> dict:
         parser = self.change_photo_parser
@@ -279,4 +289,11 @@ class PromptGenerator:
         parser = self.story_name_parser
         prompt = generate_story_name_prompt.format(story=story)
         story_name_chain = text_model | parser
-        return story_name_chain.invoke({"prompt": prompt, "parser": parser})         
+        return story_name_chain.invoke({"prompt": prompt, "parser": parser})    
+
+
+# promptGen = PromptGenerator()
+
+# res = promptGen.get_intent("It was my time with Ibrahim and my family. I took a trip recently.")
+
+# print(res)

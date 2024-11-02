@@ -95,10 +95,7 @@ class Prompts:
         This should be summarized for the user:
         1. A short Story in 3 lines.
         """
-    generate_caption_prompt = """
-     
-
-    """
+    
 
     change_photo_prompt = """
         A conversation is taking place between a user and a good friend around a photograph. Now, the user wants to move on to a new photograph.

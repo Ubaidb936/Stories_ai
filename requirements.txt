@@ -5,5 +5,8 @@ python-multipart
 OpenAI
 langchain
 langchain_openai
+langchain-chroma
 soundfile
 moviepy
+
+ 

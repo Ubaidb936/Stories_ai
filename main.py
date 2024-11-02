@@ -7,12 +7,10 @@ from services.file_manager import FileManager
 from services.tracker import Tracker
 from services.prompt_generator import PromptGenerator
 from services.speech import Speech
+from services.chroma import VectorDB
 from services.conversation_manager import ConversationManager
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
-import multipart 
-import shutil
-import subprocess
 from datetime import datetime
 
 AI_CHARACTER = "Good Friend"
@@ -29,7 +27,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.mount("/data", StaticFiles(directory="data/"), name="files")
+app.mount("/data", StaticFiles(directory="data/", html=False), name="files")
 app.mount("/static", StaticFiles(directory="frontend/build/static"), name="static")
 
 
@@ -52,55 +50,37 @@ async def upload_photo(file: UploadFile = File(...)):
         
         data["chat"] = AI_CHARACTER + ":" + question
        
+        vectordb = VectorDB("conversations")
+        doc_id = vectordb.add_document(data["chat"], file_manager.new_image_path)
+        data["doc_id"] = doc_id
 
         speech = Speech(file_manager.image_name)
-
         speech_file_path_mp3 = speech.transform_text_to_speech(question, "reply")
-        
-        audio_url = f"data/{file_manager.image_name}/reply.mp3"
+        # speech_file_path_mp3 = "http://127.0.0.1:8000/" + speech_file_path_mp3 
+
 
         tracker.save_data(data)
  
-        return {"question": question, "audio_url": audio_url}
+        return {"question": question, "audio_url": speech_file_path_mp3}
 
     else:
         tracker = Tracker(file_manager.conversation_data_file_path)
         data = tracker.load_data()
-        
-        data["count"] += 1
-
+    
         previous_memory = data["chat"]
-
         data["start_time"] = datetime.now().isoformat()
-
         data["story_generated"] = False
 
-
-        q_output = prompt_generator.get_prompt(file_manager.new_image_path, data["count"], previous_memory)  # No previous content
         s_output = prompt_generator.get_summary(previous_memory)
-        story = s_output["summary"]
-        question = q_output["question"]
-
-        #Calculate token
-        #data["tokens_used"] = 
-        
-        data["chat"] += "\n" + AI_CHARACTER + ": " + question
-
-        
-        result = story + "\n" + question
+        summary = s_output["summary"]
 
         speech = Speech(file_manager.image_name)
-
-        speech_file_path_mp3 = speech.transform_text_to_speech(result, "summary")
-
-        audio_url = f"data/{file_manager.image_name}/summary.mp3"
+        speech_file_path_mp3 = speech.transform_text_to_speech(summary, "summary")
+        # speech_file_path_mp3 = "http://127.0.0.1:8000/" + speech_file_path_mp3 
 
         tracker.save_data(data)
 
-        return {"question": result, "audio_url": audio_url}
-        
-
-    return {"error": "Failed to process the request"}
+        return {"question": summary, "audio_url": speech_file_path_mp3}
 
 
 
@@ -112,37 +92,66 @@ async def upload_audio(image_name: str = Form(...), file: UploadFile = File(...)
     file_manager = FileManager(image_name)
 
     audio_file_path = file_manager.save_audio(file)
-
     speech = Speech(file_manager.image_name)
-
     text = speech.transform_speech_to_text(audio_file_path)
-
-    
-    audio_url = f"data/{file_manager.image_name}/reply.mp3"
 
 
     prompt_generator = PromptGenerator()
-
     intent = prompt_generator.get_intent(text)
+    
+    # print(text)
+    # print(intent["intent"])
+    
 
     if intent["intent"] == "change photo":
         output = prompt_generator.change_photo_message(text)
         message = output["message"]
-        speech.transform_text_to_speech(message, "reply")
-        return {"question": "photo", "audio_url": audio_url}
+        speech_file_path_mp3=speech.transform_text_to_speech(message, "reply")
+        # speech_file_path_mp3 = "http://127.0.0.1:8000/" + speech_file_path_mp3 
+        return {"signal": "change photo", "question": "", "audio_url": speech_file_path_mp3, "image_url": ""}
     
-     
+    if intent["intent"] == "fetch story" and image_name == "":
+        vectordb = VectorDB("conversations")
+        search_res =  vectordb.search(text)
+
+        if(search_res["image_path"] == ""):
+            speech_file_path_mp3=speech.transform_text_to_speech("No Story Found", "reply")
+            # speech_file_path_mp3 = "http://127.0.0.1:8000/" + speech_file_path_mp3 
+            return {"signal": "fetch story", "question": "", "audio_url": speech_file_path_mp3, "image_url": ""}
+        
+        
+        previous_memory = search_res["conversation"]
+        image_path =search_res["image_path"]
+        s_output = prompt_generator.get_summary(previous_memory)
+        summary = s_output["summary"]
+        
+        image_name = image_path.split("/")[2]
+        file_manager = FileManager(image_name)
+       
+
+        tracker = Tracker(file_manager.conversation_data_file_path)
+        data = tracker.load_data()
+        data["story_generated"] = False
+        tracker.save_data(data)
+
+        speech_file_path_mp3=speech.transform_text_to_speech(summary, "summary")
+        # speech_file_path_mp3 = "http://127.0.0.1:8000/" + speech_file_path_mp3 
+        # image_path = "http://127.0.0.1:8000/" + image_path
+        return {"signal": "fetch story", "question": "", "audio_url": speech_file_path_mp3, "image_url": image_path, "image_name": image_name}
+
+
+    if image_name == "":
+        speech_file_path_mp3=speech.transform_text_to_speech("Please upload an Image", "reply")
+        # speech_file_path_mp3 = "http://127.0.0.1:8000/" + speech_file_path_mp3 
+        return {"signal": "no photo", "question": "", "audio_url": speech_file_path_mp3, "image_url": ""}
+
       
 
     tracker = Tracker(file_manager.conversation_data_file_path)
     data = tracker.load_data()
 
     data["count"] += 1
-
     data["chat"] += "\n" + "User: " + text
-
-
-
     previous_memory = data["chat"] 
 
     
@@ -150,9 +159,14 @@ async def upload_audio(image_name: str = Form(...), file: UploadFile = File(...)
     question = output["question"]
     
 
-    data["chat"] += "\n" + AI_CHARACTER + ": " + text
+    data["chat"] += "\n" + AI_CHARACTER + ": " + question
+
+    vectordb = VectorDB("conversations")
+    doc_id = vectordb.update_document(data["chat"], file_manager.new_image_path, data["doc_id"])
+    data["doc_id"] = doc_id
 
     speech_file_path_mp3 = speech.transform_text_to_speech(question, "reply")
+    # speech_file_path_mp3 = "http://127.0.0.1:8000/" + speech_file_path_mp3 
      
     data["end_time"] = datetime.now().isoformat()
     start_time = datetime.fromisoformat(data["start_time"])
@@ -163,7 +177,7 @@ async def upload_audio(image_name: str = Form(...), file: UploadFile = File(...)
 
     tracker.save_data(data)
     
-    return {"question": question, "audio_url": audio_url}
+    return {"signal": "continue", "question": question, "audio_url": speech_file_path_mp3, "image_url": ""}
 
 
 @app.get("/stories")
@@ -172,10 +186,9 @@ async def get_stories():
     files_paths = []
     
     # Walk through all folders and subfolders in the data folder
-    for root, dirs, files in os.walk("data"):
+    for root, dir, files in os.walk("data"):
         image_path = ""
-        audio_path = ""
-        if(root == "data"):
+        if root == "data" or "data/chroma_langchain_db" in root:
             continue
 
         tracker = Tracker(f"{root}/conversation_data.json")
@@ -184,28 +197,27 @@ async def get_stories():
 
         image_name = root.split("/")[1]
 
-        if not data["story_generated"]:
-            prompt_generator = PromptGenerator()
-            get_story_output = prompt_generator.get_story(data["chat"])
-            
-            story = get_story_output["story"]
-            generate_story_name_output = prompt_generator.generate_story_name(story)
-            data["story_name"] = generate_story_name_output["story_name"]
-
-            speech = Speech(image_name)
-            speech_file_path_mp3 = speech.transform_text_to_speech(story, "story")
-            data["story_generated"] = True
-            # print("hello")
-
         for file in files:
-            # Check if the file has one of the valid image extensions
             if os.path.splitext(file)[1].lower() in image_extensions:
                 image_path = os.path.join(root, file)
         
-        audio_path = f"{root}/story.mp3"   
-        image_path =  image_path
 
-        file_path = {"image_path": image_path, "audio_path": audio_path, "story_name": data["story_name"]}
+        if not data["story_generated"]:
+            prompt_generator = PromptGenerator()
+            get_story_output = prompt_generator.get_story(image_path, data["chat"])
+            
+            story = get_story_output["story"]
+            data["story_name"] =  get_story_output["story_name"]
+
+            speech = Speech(image_name)
+            speech_file_path_mp3 = speech.transform_text_to_speech(story, "story")
+            # speech_file_path_mp3 = "http://127.0.0.1:8000/" + speech_file_path_mp3 
+            data["story_file_path"] = speech_file_path_mp3
+            data["story_generated"] = True
+        
+        # image_path = f"http://127.0.0.1:8000/{image_path}"
+
+        file_path = {"image_path": image_path, "audio_path": data["story_file_path"], "story_name": data["story_name"]}
 
         if file_path["image_path"] != "" and file_path["audio_path"] != "":
             files_paths.append(file_path)
@@ -221,4 +233,3 @@ async def read_index(request: Request) -> HTMLResponse:
     with open("frontend/build/index.html", "r") as f:
         html_content = f.read()
     return HTMLResponse(content=html_content, status_code=200)
-    

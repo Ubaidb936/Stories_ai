@@ -173,55 +173,78 @@ const Main = () =>  {
       reader.readAsDataURL(file);
     });
   };
-  
-  
-  
 
+  // let stream;
+  useEffect(() => {
+    const getAudioStream = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            // Do something with the audio stream, e.g., set it to a state or use it directly
+            console.log('Audio stream:', stream);
+        } catch (error) {
+            console.error('Error accessing audio stream:', error);
+        }
+    };
+
+    getAudioStream();
+   }, [])
+  
   const startRecording = async () => {
     try {
+      // Request microphone access and start audio recording
+      
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       setAudio(null);
       setProcessingState("Listening");
       setUploading(true);
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+  
+      const mediaRecorder = new MediaRecorder(stream);
       const audioChunks = [];
       mediaRecorderRef.current = mediaRecorder;
+  
       mediaRecorder.ondataavailable = (event) => {
         audioChunks.push(event.data);
       };
+  
       mediaRecorder.onstop = async () => {
         if (audioChunks.length > 0) {
           setProcessingState("Thinking");
-          setUploading(true); // Start loading animation
-          const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+          setUploading(true);
+  
+          const audioBlob = new Blob(audioChunks);
           const formData = new FormData();
           formData.append('image_name', uploadedImageName);
           formData.append('file', audioBlob, 'audio.webm');
+  
           try {
             const response = await fetch('/upload-audio/', {
               method: 'POST',
               body: formData,
             });
+  
             if (response.ok) {
               const data = await response.json();
-              
-              if(data.question == "photo"){
-
+              setAudio(null);
+              if (data.signal === "change photo") {
                 setImage(null);
                 setUploadedImageName('');
-                
               }
-
+              if (data.signal === "fetch story") {
+                setImage(null);
+                setImage(data.image_url);
+                setUploadedImageName(data.image_name);
+              }
+  
               setAudio(data.audio_url);
-              setUploading(false); // Stop loading animation
+              setUploading(false);
             } else {
               console.error('Failed to upload audio');
-              setUploading(false); // Stop loading animation
+              setUploading(false);
               alert('Failed to upload audio. Please try again.');
             }
           } catch (error) {
             console.error('Error uploading audio:', error);
-            setUploading(false); // Stop loading animation
+            setUploading(false);
             alert('Error uploading audio. Please check your connection and try again.');
           }
         } else {
@@ -229,11 +252,16 @@ const Main = () =>  {
           alert('No audio data available. Please try recording again.');
         }
       };
+  
       mediaRecorder.start();
       setRecording(true);
     } catch (error) {
-      console.error('Error starting recording:', error);
-      alert('Unable to access microphone. Please try again.');
+      if (error.name === 'NotAllowedError') {
+        alert('Microphone access was denied. Please allow microphone access to start recording.');
+      } else {
+        console.error('Error starting recording:', error);
+        alert('Unable to access microphone. Please check your settings and try again.');
+      }
     }
   };
 
@@ -335,5 +363,4 @@ const Main = () =>  {
     </div>
   );
 }
-
 export default Main;

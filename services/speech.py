@@ -7,6 +7,7 @@ import soundfile as sf       # For saving the audio in wav format  # Assuming yo
 import moviepy.editor as mp  # For converting webm to wav
 import soundfile as sf
 from pathlib import Path
+from datetime import datetime
 
 
 # os.environ["OPENAI_API_KEY"] 
@@ -59,7 +60,9 @@ class Speech:
     def transform_text_to_speech(self, text: str, type: str):
         # Define file paths for saving audio
 
-        speech_file_path_mp3 = Path.cwd() / f"data/{self.image_name}/{type}.mp3"
+        formatted_timestamp = datetime.now().strftime("%Y:%m:%d_%H:%M:%S.%f")
+
+        speech_file_path_mp3 =  f"data/{self.image_name}/{type}-{formatted_timestamp}.mp3"
  
         # Generate speech from text (using your TTS service)
         response = client.audio.speech.create(

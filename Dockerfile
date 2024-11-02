@@ -45,3 +45,5 @@ EXPOSE 443
 
 # Command to run FastAPI app with SSL
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "443", "--ssl-keyfile", "/etc/ssl/private/privkey.pem", "--ssl-certfile", "/etc/ssl/certs/fullchain.pem"]
+
+
