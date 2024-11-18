@@ -241,14 +241,14 @@ html, body {
   display: flex;
   justify-content: space-between; /* Distribute space between icons */
   align-items: center; /* Center icons vertically */
-  gap: 20px; /* Space between controls */
+  gap: 10px; /* Space between controls */
   margin-top: 20px; /* Space from media container */
   background-color: #3a3a3a; /* Match background color */
   border: 2px solid #4a4a4a; /* Match border */
   border-radius: 8px; /* Match border-radius */
   padding: 10px; /* Add padding for better spacing */
   width: 80%; /* Increase width of controls container */
-  max-width: 150px; /* Maximum width of controls container */
+  max-width: 200px; /* Maximum width of controls container */
   box-sizing: border-box; /* Include padding in width calculation */
 }
 
@@ -310,17 +310,26 @@ html, body {
 }
 
 .story-card {
-  border: 1px solid #ddd;
+  border: 2px solid #b0b0b0a2; /* Light gray original border */
   border-radius: 8px;
-  padding: 0; /* Remove inner padding */
-  width: calc(33.33% - 20px); /* Three cards in a row with gap in mind */
+  padding: 0;
+  width: calc(33.33% - 20px);
   max-width: 300px;
-  height: 400px; /* Fixed height for the story card */
+  height: 400px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
-  justify-content: space-between; /* Ensure image fills available space, audio at the bottom */
+  justify-content: space-between;
+  transition: border-color 0.3s, box-shadow 0.3s; /* Smooth transition */
+  cursor: 'pointer';
 }
+
+.story-card:hover {
+  cursor: 'pointer';
+  border-color: #ffffff; /* Extreme white border */
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3); /* Stronger shadow for focus */
+}
+
 
 .image-container {
   flex-grow: 1; /* Allow the image container to grow and take all available space */
@@ -393,4 +402,119 @@ html, body {
   align-items: center;
   height: 100vh;
   font-size: 1.5rem;
+}
+
+.success-message {
+  background-color: #3a3a3a;;
+  color: white;
+  padding: 10px;
+  margin-top: 10px;
+  border-radius: 5px;
+  font-size: 14px;
+  text-align: center;
+}
+
+
+/* Header with product name */
+.header {
+  text-align: center;
+  margin-top: 20px;
+  color: purple;
+}
+
+.product-name {
+  font-size: 2.5rem;
+  font-weight: bold;
+  letter-spacing: 2px;
+  margin-bottom: 20px;
+  text-transform: uppercase;
+}
+
+/* Main login container */
+.login-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  padding: 20px;
+}
+
+/* Login box styling */
+.login-box {
+  width: 100%;
+  background-color: #3a3a3a;
+  border-radius: 8px;
+  padding: 30px;
+  box-sizing: border-box;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  max-width: 400px; /* To control the width */
+  margin-top: 20px;
+}
+
+/* Form header */
+.login-header {
+  font-size: 1.8rem;
+  text-align: center;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: #f5f5f5;
+}
+
+/* Input group styling */
+.input-group {
+  margin-bottom: 20px;
+}
+
+.input-group label {
+  font-size: 1rem;
+  color: #f5f5f5;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.input-field {
+  width: 100%;
+  padding: 10px;
+  margin-top: 5px;
+  border-radius: 5px;
+  border: 2px solid #4a4a4a;
+  background-color: #2c2c2c;
+  color: #f5f5f5;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+.input-field:focus {
+  border-color: purple; /* Highlight border on focus */
+  outline: none;
+}
+
+/* Error message styling */
+.error-message {
+  color: #e74c3c;
+  text-align: center;
+  margin-top: 10px;
+  font-size: 1rem;
+}
+
+/* Button styling */
+.login-button {
+  width: 100%;
+  padding: 10px;
+  background-color: grey;
+  color: #fff;
+  font-size: 1.2rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.login-button:hover {
+  background-color: purple;
+}
+
+button:focus {
+  outline: none;
 }

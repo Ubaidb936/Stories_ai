@@ -75,19 +75,19 @@ const Main = () =>  {
       try {
         // Check if the file type is HEIC
         if (file.type === 'image/heic') {
-          console.log('File type is HEIC. Converting to JPG...');
+          // console.log('File type is HEIC. Converting to JPG...');
           fileToUpload = await convertHeicToJpg(file);
         } else if (!allowedFormats.includes(file.type)) {
-          console.log(`File type is ${file.type}. Converting to JPG...`);
+          // console.log(`File type is ${file.type}. Converting to JPG...`);
           fileToUpload = await convertToJpg(file);
         } else {
-          console.log('File type is allowed. Proceeding without conversion.');
+          // console.log('File type is allowed. Proceeding without conversion.');
           fileToUpload = file;
         }
 
         
   
-        console.log('File to upload:', fileToUpload.name);
+        // console.log('File to upload:', fileToUpload.name);
         setImage(URL.createObjectURL(fileToUpload));
         setUploadedImageName(fileToUpload.name);
   
@@ -95,7 +95,7 @@ const Main = () =>  {
         formData.append('file', fileToUpload);
   
         const xhr = new XMLHttpRequest();
-        xhr.open('POST', '/upload-photo/', true);
+        xhr.open('POST', '/upload-photo', true);
   
         xhr.onload = async () => {
           if (xhr.status >= 200 && xhr.status < 300) {
@@ -217,7 +217,7 @@ const Main = () =>  {
           formData.append('file', audioBlob, 'audio.webm');
   
           try {
-            const response = await fetch('/upload-audio/', {
+            const response = await fetch('/upload-audio', {
               method: 'POST',
               body: formData,
             });
@@ -285,9 +285,14 @@ const Main = () =>  {
   };
 
   const handleClick = () => {
-    console.log("Hello, world"); // Log message
     navigate('/Stories');
    };
+
+   const handleDelete = () => {
+    setImage(null)
+    setAudio(null)
+    setUploadedImageName('')
+   }
 
   return (
     <div className="app-container">
@@ -300,7 +305,7 @@ const Main = () =>  {
           <div className="image-placeholder">
             <p>Your photo will be displayed here</p>
           </div>
-        )}
+        )} 
       </div>
         <div className="audio-area">
           {audio && (
@@ -358,6 +363,12 @@ const Main = () =>  {
               <span className="tooltiptext">I want to stop</span>
             </button>
           )}
+        </div>
+        <div className="tooltip">
+        <button className="icon-button" onClick={handleDelete}>
+              <i className="fas fa-trash-alt"></i>
+              <span className="tooltiptext">Delete Photo</span>
+        </button>
         </div>
       </div>
     </div>

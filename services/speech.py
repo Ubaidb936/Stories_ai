@@ -8,10 +8,11 @@ import moviepy.editor as mp  # For converting webm to wav
 import soundfile as sf
 from pathlib import Path
 from datetime import datetime
+from .config import OPEN_AI_API_KEY
 
 
 # os.environ["OPENAI_API_KEY"] 
-client = OpenAI(api_key="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")
+client = OpenAI(api_key=OPEN_AI_API_KEY)
 
 
 class Speech:

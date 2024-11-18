@@ -22,8 +22,8 @@ class FileManager:
             return True
         return False
         
-    def save_audio(self, file):
-        input_audio_location = f"data/{self.image_name}/input-{file.filename}"
+    def save_audio(self, file, type):
+        input_audio_location = f"data/{self.image_name}/{type}"
         with open(input_audio_location, "wb") as f:
             shutil.copyfileobj(file.file, f)
         return input_audio_location   

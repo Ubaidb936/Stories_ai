@@ -11,12 +11,8 @@ from langchain_core.output_parsers import JsonOutputParser
 from langchain.memory import ConversationSummaryBufferMemory, ConversationBufferMemory
 from langchain.chains import TransformChain
 from pydantic import BaseModel, Field
+from .config import OPEN_AI_API_KEY
 
-
-
-# os.environ["OPENAI_API_KEY"] = "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"
-
-open_ai_api_key = "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"
 
 
 CONVERSATION_STARTER_PROMPT = """
@@ -100,25 +96,41 @@ user_intent_prompt = """
 generate_summary_prompt = """
     Here is a conversation between a good friend and a user around a photograph uploaded by the user:
     {conversation}
-
+    
     Summarize this conversation in a friendly, 3-line story using "you" to refer to the user. Then, ask a follow-up question to encourage them to continue sharing.
 
     This should be summarized for the user:
     1. A summary in 3 lines and a follow back question.
     """
 
-generate_story_prompt = """
-    Given the photograph upload by the user
-    Here is a conversation between a good friend and a user around a photograph uploaded by the user:
+
+generate_summary_with_family_feedback_prompt = """
+    Here is a conversation between a good friend and a user about a photograph uploaded by the user:
     {conversation}
 
-    Please generate a short story from this conversation about the photograph and a story name.
-    Please build a realistic story, don't invent anything and use photo as a guide.  
+    Here is a family feedback:
+    (This is feedback shared by the user's family.)
+    {family_feedback}
+
+    Summarize the conversation in three lines, referring to user as "you." Conclude the summary by naturally including the family’s feedback, for example, by starting with, "Here is what your family has to say about the photograph." or any other effective way..
+
+    Provide the following:
+    1. A Short summary followed by family feedback.
+    """
+
+generate_story_prompt = """
+    Given a photograph uploaded by the user and a conversation between a good friend and the user about the photograph:
+
+    {conversation}
+
+    Instructions:
+    1. Create a short story that captures the essence of the conversation about the photograph. 
+    2. Do not invent new details—base the story entirely on the provided conversation.
 
     Provide:
-    1. A short Story in 3 lines.
-    2. Story name in 2 words.
-    """
+    1. A concise story in three sentences.
+    2. A two-word title for the story.
+"""
 
 
 generate_story_name_prompt = """
@@ -162,6 +174,9 @@ class UserIntent(BaseModel):
 class GenerateSummary(BaseModel):
     summary: str = Field(description= " Summary and a follow back question")
 
+class GenerateSummaryWithFamilyFeedback(BaseModel):
+    summary: str = Field(description= "A Short summary followed by the family feedback.")
+
 class GenerateStory(BaseModel):
     story: str = Field(description= "A Story")
     story_name: str = Field(description= "A Story name")
@@ -200,7 +215,7 @@ def image_model(inputs: dict) -> str | list[str] | dict:
         temperature=0.5, 
         model="gpt-4o", 
         max_tokens=1024,
-        api_key= open_ai_api_key
+        api_key= OPEN_AI_API_KEY
         )
     msg = model.invoke(
                 [HumanMessage(
@@ -220,7 +235,7 @@ def text_model(inputs: dict) -> str | list[str] | dict:
         temperature=0.5, 
         model="gpt-4o", 
         max_tokens=1024,
-        api_key= open_ai_api_key
+        api_key= OPEN_AI_API_KEY
         )
     msg = model.invoke(
                 [HumanMessage(
@@ -242,6 +257,7 @@ class PromptGenerator:
         self.change_photo_parser = JsonOutputParser(pydantic_object=ChangePhoto)
         self.summary_parser = JsonOutputParser(pydantic_object=GenerateSummary)
         self.story_name_parser = JsonOutputParser(pydantic_object=GenerateStoryName)
+        self.summary_parser_with_family_feedback = JsonOutputParser(pydantic_object=GenerateSummaryWithFamilyFeedback)
         self.ai_character = "Good Friend"
 
     def get_prompt(self, image_path: str, iter: int, memory: str) -> dict:
@@ -290,10 +306,11 @@ class PromptGenerator:
         prompt = generate_story_name_prompt.format(story=story)
         story_name_chain = text_model | parser
         return story_name_chain.invoke({"prompt": prompt, "parser": parser})    
+    
+    def get_summary_with_family_feedback(self, previous_memory, family_feedback):
+        parser = self.summary_parser_with_family_feedback
+        prompt = generate_summary_with_family_feedback_prompt.format(conversation=previous_memory, family_feedback=family_feedback)
+        story_name_chain = text_model | parser
+        return story_name_chain.invoke({"prompt": prompt, "parser": parser}) 
 
 
-# promptGen = PromptGenerator()
-
-# res = promptGen.get_intent("It was my time with Ibrahim and my family. I took a trip recently.")
-
-# print(res)

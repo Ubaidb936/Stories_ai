@@ -31,7 +31,7 @@ app.mount("/data", StaticFiles(directory="data/", html=False), name="files")
 app.mount("/static", StaticFiles(directory="frontend/build/static"), name="static")
 
 
-@app.post("/upload-photo/")
+@app.post("/upload-photo")
 async def upload_photo(file: UploadFile = File(...)):
     
     file_manager = FileManager(file.filename)
@@ -42,9 +42,9 @@ async def upload_photo(file: UploadFile = File(...)):
 
         tracker = Tracker(file_manager.conversation_data_file_path)
         data = tracker.load_data()
-        
         data["count"] += 1
     
+
         output = prompt_generator.get_prompt(file_manager.new_image_path, data["count"], None)  # No previous content
         question = output["question"]
         
@@ -57,8 +57,7 @@ async def upload_photo(file: UploadFile = File(...)):
         speech = Speech(file_manager.image_name)
         speech_file_path_mp3 = speech.transform_text_to_speech(question, "reply")
         # speech_file_path_mp3 = "http://127.0.0.1:8000/" + speech_file_path_mp3 
-
-
+        
         tracker.save_data(data)
  
         return {"question": question, "audio_url": speech_file_path_mp3}
@@ -66,10 +65,17 @@ async def upload_photo(file: UploadFile = File(...)):
     else:
         tracker = Tracker(file_manager.conversation_data_file_path)
         data = tracker.load_data()
+
+        if data["summary_generated"]:
+            data["summary_generated"] = False
+            tracker.save_data(data)
+            return {"question": "", "audio_url": data["summary_file_path"]}
+            
     
         previous_memory = data["chat"]
         data["start_time"] = datetime.now().isoformat()
         data["story_generated"] = False
+
 
         s_output = prompt_generator.get_summary(previous_memory)
         summary = s_output["summary"]
@@ -77,7 +83,7 @@ async def upload_photo(file: UploadFile = File(...)):
         speech = Speech(file_manager.image_name)
         speech_file_path_mp3 = speech.transform_text_to_speech(summary, "summary")
         # speech_file_path_mp3 = "http://127.0.0.1:8000/" + speech_file_path_mp3 
-
+        
         tracker.save_data(data)
 
         return {"question": summary, "audio_url": speech_file_path_mp3}
@@ -86,27 +92,26 @@ async def upload_photo(file: UploadFile = File(...)):
 
 
 
-@app.post("/upload-audio/")
+@app.post("/upload-audio")
 async def upload_audio(image_name: str = Form(...), file: UploadFile = File(...)):
     
     file_manager = FileManager(image_name)
 
-    audio_file_path = file_manager.save_audio(file)
+    audio_file_path = file_manager.save_audio(file,  "user_input")
     speech = Speech(file_manager.image_name)
     text = speech.transform_speech_to_text(audio_file_path)
-
-
+    
+    
     prompt_generator = PromptGenerator()
     intent = prompt_generator.get_intent(text)
     
-    # print(text)
-    # print(intent["intent"])
+  
     
 
     if intent["intent"] == "change photo":
         output = prompt_generator.change_photo_message(text)
         message = output["message"]
-        speech_file_path_mp3=speech.transform_text_to_speech(message, "reply")
+        speech_file_path_mp3 = speech.transform_text_to_speech(message, "reply")
         # speech_file_path_mp3 = "http://127.0.0.1:8000/" + speech_file_path_mp3 
         return {"signal": "change photo", "question": "", "audio_url": speech_file_path_mp3, "image_url": ""}
     
@@ -119,24 +124,29 @@ async def upload_audio(image_name: str = Form(...), file: UploadFile = File(...)
             # speech_file_path_mp3 = "http://127.0.0.1:8000/" + speech_file_path_mp3 
             return {"signal": "fetch story", "question": "", "audio_url": speech_file_path_mp3, "image_url": ""}
         
-        
         previous_memory = search_res["conversation"]
-        image_path =search_res["image_path"]
-        s_output = prompt_generator.get_summary(previous_memory)
-        summary = s_output["summary"]
-        
+        image_path = search_res["image_path"]
         image_name = image_path.split("/")[2]
+        # image_path = "http://127.0.0.1:8000/" + image_path
         file_manager = FileManager(image_name)
-       
-
         tracker = Tracker(file_manager.conversation_data_file_path)
         data = tracker.load_data()
+
+        if data["summary_generated"]:
+            data["summary_generated"] = False
+            data["story_generated"] = False
+            tracker.save_data(data)
+            return {"signal": "fetch story", "question": "", "audio_url": data["summary_file_path"], "image_url": image_path, "image_name": image_name}
+        
+        
+        s_output = prompt_generator.get_summary(previous_memory)
+        summary = s_output["summary"]
         data["story_generated"] = False
         tracker.save_data(data)
 
         speech_file_path_mp3=speech.transform_text_to_speech(summary, "summary")
         # speech_file_path_mp3 = "http://127.0.0.1:8000/" + speech_file_path_mp3 
-        # image_path = "http://127.0.0.1:8000/" + image_path
+    
         return {"signal": "fetch story", "question": "", "audio_url": speech_file_path_mp3, "image_url": image_path, "image_name": image_name}
 
 
@@ -202,7 +212,8 @@ async def get_stories():
                 image_path = os.path.join(root, file)
         
 
-        if not data["story_generated"]:
+        if not data["story_generated"] and image_path != "":
+  
             prompt_generator = PromptGenerator()
             get_story_output = prompt_generator.get_story(image_path, data["chat"])
             
@@ -225,6 +236,43 @@ async def get_stories():
         tracker.save_data(data)    
     
     return files_paths
+
+
+@app.post("/family_feedback")
+async def family_feedback(image_name: str = Form(...), file: UploadFile = File(...)):
+    file_manager = FileManager(image_name)
+
+    audio_file_path = file_manager.save_audio(file, "family_input")
+    speech = Speech(file_manager.image_name)
+    text = speech.transform_speech_to_text(audio_file_path)
+
+    tracker = Tracker(file_manager.conversation_data_file_path)
+    data = tracker.load_data()
+    
+
+    # previous_memory = data["chat"]
+    # data["start_time"] = datetime.now().isoformat()
+    # data["story_generated"] = False
+    
+    
+    prompt_generator = PromptGenerator()
+    s_output = prompt_generator.get_summary_with_family_feedback(data["chat"], text)
+    summary = s_output["summary"]
+
+    data["chat"] += "\n" + "Family Member" + ": " + text
+
+    speech = Speech(file_manager.image_name)
+    speech_file_path_mp3 = speech.transform_text_to_speech(summary, "summary")
+    # speech_file_path_mp3 = "http://127.0.0.1:8000/" + speech_file_path_mp3 
+
+    data["summary_file_path"] = speech_file_path_mp3
+    data["summary_generated"] = True
+    
+    tracker.save_data(data)
+
+    
+    return {"message": "Feedback Sent"}
+
 
 
 

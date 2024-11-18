@@ -17,10 +17,12 @@ class Tracker:
                 "duration": 0,
                 "count": 0,
                 "story_generated": False,
+                "summary_generated": False,
                 "tokens_used": 0,
                 "doc_id": "",
                 "story_name": "",
                 "story_file_path": "",
+                "summary_file_path": "",
                 "chat": "",
                 }   
 

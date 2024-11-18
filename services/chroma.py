@@ -6,12 +6,12 @@ from langchain_chroma import Chroma
 from uuid import uuid4
 from langchain_core.documents import Document
 
-api_key = "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"
+from .config import OPEN_AI_API_KEY
 
 class VectorDB:
     def __init__(self, collection_name: str):
         self.persistent_client = chromadb.PersistentClient("data/chroma_langchain_db")
-        self.embeddings = OpenAIEmbeddings(model="text-embedding-3-large", api_key=api_key)
+        self.embeddings = OpenAIEmbeddings(model="text-embedding-3-large", api_key=OPEN_AI_API_KEY)
         
         self.vector_store = Chroma(
             client=self.persistent_client,
@@ -60,7 +60,7 @@ class VectorDB:
     def strict_search(self, query: str):
         retriever = self.vector_store.as_retriever(
             search_type="similarity_score_threshold",
-            search_kwargs={"k": 1, "score_threshold": 0.1},
+            search_kwargs={"k": 1, "score_threshold": 1},
         )
         res = retriever.invoke(query)
 
