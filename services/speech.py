@@ -2,9 +2,8 @@ import os
 import subprocess
 from pathlib import Path 
 from openai import OpenAI
-import moviepy.editor as mp  # For converting webm to wav
 import soundfile as sf       # For saving the audio in wav format  # Assuming you're using OpenAI's Whisper
-import moviepy.editor as mp  # For converting webm to wav
+# import moviepy.editor as mp  # For converting webm to wav
 import soundfile as sf
 from pathlib import Path
 from datetime import datetime

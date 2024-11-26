@@ -5,6 +5,14 @@ from datetime import datetime
 class Tracker:
     def __init__(self, conversation_data_file_path:str):
         self.conversation_data_file_path = conversation_data_file_path
+        self.user_permission_path = "permissions/permission.json"
+
+    def load_user_persmissions(self):
+        if os.path.exists(self.user_permission_path):
+            with open(self.user_permission_path, 'r') as f:
+                return json.load(f)
+        return {}
+    
 
     def load_data(self):
         if os.path.exists(self.conversation_data_file_path):

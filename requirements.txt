@@ -8,5 +8,6 @@ langchain_openai
 langchain-chroma
 soundfile
 moviepy
+firebase-admin
 
  

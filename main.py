@@ -1,5 +1,6 @@
 import os
-from fastapi import FastAPI, Request, File, UploadFile, Form
+from firebase_admin import credentials, initialize_app, auth
+from fastapi import FastAPI, Request, File, UploadFile, Form, HTTPException, Depends
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
@@ -9,11 +10,17 @@ from services.prompt_generator import PromptGenerator
 from services.speech import Speech
 from services.chroma import VectorDB
 from services.conversation_manager import ConversationManager
+from services.users import UserData
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
+from fastapi.security import OAuth2PasswordBearer
 from datetime import datetime
+from pydantic import BaseModel
 
 AI_CHARACTER = "Good Friend"
+
+cred = credentials.Certificate("Firebase.json") # Replace with your JSON file path
+initialize_app(cred)
 
 app = FastAPI()
 
@@ -29,6 +36,53 @@ app.add_middleware(
 
 app.mount("/data", StaticFiles(directory="data/", html=False), name="files")
 app.mount("/static", StaticFiles(directory="frontend/build/static"), name="static")
+
+
+
+# OAuth2 scheme for extracting Bearer token
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+
+# Define a Pydantic model for the request body
+class SignUpRequest(BaseModel):
+    email: str
+    role: str
+
+@app.post("/signUp")
+async def signUp(data: SignUpRequest, token: str = Depends(oauth2_scheme)):
+    try:
+        # Verify the Firebase ID token
+        decoded_token = auth.verify_id_token(token)
+        uid = decoded_token["uid"]
+        userData = UserData()
+        p_data = userData.load_user_persmissions()
+        p_data[data.email] = [False, data.role]
+        userData.save_data(p_data)
+        return {"message": "User signed up successfully"}
+
+    except auth.InvalidIdTokenError:
+        raise HTTPException(status_code=401, detail="Invalid authentication token")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@app.post("/login")
+async def login(token: str = Depends(oauth2_scheme)):
+    try:
+        # Verify the Firebase ID token
+        decoded_token = auth.verify_id_token(token)
+        uid = decoded_token["uid"]
+        email = decoded_token["firebase"]["identities"]["email"][0]
+        
+        userData  = UserData()
+        data = userData.load_user_persmissions()
+
+        if not data[email][0]:
+            return {"message": "Request under review."}
+            
+        return {"message": "Access granted", "role": data[email][1]}
+    
+    except Exception as e:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
 
 
 @app.post("/upload-photo")
@@ -272,7 +326,6 @@ async def family_feedback(image_name: str = Form(...), file: UploadFile = File(.
 
     
     return {"message": "Feedback Sent"}
-
 
 
 
